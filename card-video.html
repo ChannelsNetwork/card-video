@@ -1,0 +1,62 @@
+<link rel="import" href="../polymer-channels-card/polymer-channels-card.html">
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html">
+
+<dom-module id="card-video-composer">
+  <template>
+    <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+    <div class="horizontal layout center" style="padding: 5px;">
+      <paper-input id="videoSrc" placeholder="Enter URL to video content source" class="flex"></paper-input>
+      <paper-button on-click="onSendClick" raised>Send</paper-button>
+    </div>
+  </template>
+  <script>
+    class CardVideoComposer extends PolymerChannelsCardComposer {
+      static get is() { return 'card-video-composer'; }
+      onSendClick() {
+        if (this.$.videoSrc.value.trim().length > 0) {
+          this.send({ srcUrl: this.$.videoSrc.value });
+        }
+      }
+    }
+    window.customElements.define(CardVideoComposer.is, CardVideoComposer);
+  </script>
+</dom-module>
+
+<dom-module id="card-video-viewer">
+  <script src="./modernizr.js"></script>
+  <template>
+    <style>
+      video {
+        width: 100%;
+        height: auto;
+        vertical-align: middle;
+      }
+    </style>
+    <div style="text-align:center;">
+      <video id="v" autoplay controls loop></video>
+    </div>
+  </template>
+  <script>
+    class CardVideoViewer extends PolymerChannelsCardViewer {
+      static get is() { return 'card-video-viewer'; }
+      connectedCallback() {
+        super.connectedCallback();
+        const src = this.data.srcUrl;
+        if (!Modernizr.video || src.endsWith(".webm") || src.endsWith(".ogv") || src.endsWith(".mp4")) {
+          this.$.v.src = src;
+        } else if (Modernizr.video.webm) {
+          this.$.v.src = src + ".webm";
+        } else if (Modernizr.video.ogg) {
+          this.$.v.src = src + ".ogg";
+        } else if (Modernizr.video.h264) {
+          this.$.v.src = src + ".mp4";
+        } else {
+          this.$.v.src = src;
+        }
+      }
+    }
+    window.customElements.define(CardVideoViewer.is, CardVideoViewer);
+  </script>
+</dom-module>
