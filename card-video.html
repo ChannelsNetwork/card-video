@@ -150,6 +150,7 @@
         this.$.progress.style.display = "";
         this.services.upload(event.detail.file).then((response) => {
           this._videoUrl = response.url;
+          this.$.video.src = this._videoUrl;
           this.$.progress.style.display = "none";
           this.$.pickerPanel.style.display = "none";
           this.$.videoPanel.style.display = "";
