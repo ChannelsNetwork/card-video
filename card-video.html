@@ -18,6 +18,12 @@
       soso-file-picker {
         height: 100px;
       }
+
+      #progress {
+        font-size: 20px;
+        text-align: center;
+        margin: 25px 0 15px;
+      }
     </style>
     <div class="container">
       <div>
@@ -26,6 +32,9 @@
       </div>
       <div>
         <soso-file-picker id="filePicker" label="Drag an mp4 video file" accept=".mp4" on-files="_onFile"></soso-file-picker>
+      </div>
+      <div id="progress" style="display:none;">
+        <div>uploading...</div>
       </div>
     </div>
   </template>
@@ -66,11 +75,14 @@
 
       _onFile(event) {
         this._file = event.detail.file;
+        this.$.progress.style.display = "";
         this.services.upload(event.detail.file).then((response) => {
           this._videoUrl = response.url;
+          this.$.progress.style.display = "none";
           this._setReady(true);
         }).catch((err) => {
           this.$.filePicker.clear();
+          this.$.progress.style.display = "none";
           this._file = null;
           this._videoUrl = null;
           this._setReady(false);
