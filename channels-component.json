@@ -1,4 +1,5 @@
 {
   "composerTag": "card-video-composer",
-  "viewerTag": "card-video-viewer"
+  "viewerTag": "card-video-viewer",
+  "iconUrl": "./icon_play2.png"
 }

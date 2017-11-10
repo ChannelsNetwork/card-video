@@ -1,22 +1,88 @@
-<link rel="import" href="../polymer-channels-card/polymer-channels-card.html">
-<link rel="import" href="../paper-button/paper-button.html">
-<link rel="import" href="../paper-input/paper-input.html">
-<link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../soso-text-input/soso-text-input.html">
+<link rel="import" href="../soso-file-picker/soso-file-picker.html">
 
 <dom-module id="card-video-composer">
   <template>
-    <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
-    <div class="horizontal layout center" style="padding: 5px;">
-      <paper-input id="videoSrc" placeholder="Enter URL to video content source" class="flex"></paper-input>
-      <paper-button on-click="onSendClick" raised>Send</paper-button>
+    <style is="custom-style">
+      .container {
+        max-width: 600px;
+        margin: 25px auto;
+        padding: 15px;
+      }
+
+      soso-text-input {
+        margin: 25px 0;
+      }
+
+      soso-file-picker {
+        height: 100px;
+      }
+    </style>
+    <div class="container">
+      <div>
+        <soso-text-input id="title" label="Title"></soso-text-input>
+        <soso-text-input id="description" label="Description"></soso-text-input>
+      </div>
+      <div>
+        <soso-file-picker id="filePicker" label="Drag an mp4 video file" accept=".mp4" on-files="_onFile"></soso-file-picker>
+      </div>
     </div>
   </template>
   <script>
-    class CardVideoComposer extends PolymerChannelsCardComposer {
+    class CardVideoComposer extends Polymer.Element {
       static get is() { return 'card-video-composer'; }
-      onSendClick() {
-        if (this.$.videoSrc.value.trim().length > 0) {
-          this.send({ srcUrl: this.$.videoSrc.value });
+      static get properties() {
+        return {
+          services: Object,
+          author: Object
+        };
+      }
+      connectedCallback() {
+        super.connectedCallback();
+        this._ready = false;
+      }
+
+      get isReady() {
+        return this._ready;
+      }
+
+      get summary() {
+        return {
+          imageURL: null,
+          title: this.$.title.value.trim(),
+          text: this.$.description.value.trim()
+        };
+      }
+
+      get sharedState() {
+        return {
+          properties: {
+            videoUrl: this._videoUrl
+          },
+          collections: {}
+        }
+      }
+
+      _onFile(event) {
+        this._file = event.detail.file;
+        this.services.upload(event.detail.file).then((dataUrl) => {
+          this._videoUrl = dataUrl;
+          this._setReady(true);
+        }).catch((err) => {
+          this.$.filePicker.clear();
+          this._file = null;
+          this._videoUrl = null;
+          this._setReady(false);
+          console.error(err);
+          this._setError("Failed to load video file");
+        });
+      }
+
+      _setReady(value) {
+        if (value !== this._ready) {
+          this._ready = value;
+          this.dispatchEvent(new CustomEvent('state-ready-change', { bubbles: true, composed: true, detail: { ready: this._ready } }));
         }
       }
     }
@@ -25,36 +91,31 @@
 </dom-module>
 
 <dom-module id="card-video-viewer">
-  <script src="./modernizr.js"></script>
   <template>
     <style>
       video {
+        max-width: 800px;
         width: 100%;
         height: auto;
         vertical-align: middle;
       }
     </style>
     <div style="text-align:center;">
-      <video id="v" autoplay controls loop></video>
+      <video id="v" autoplay controls loop src="[[sharedState.properties.videoUrl]]"></video>
     </div>
   </template>
   <script>
-    class CardVideoViewer extends PolymerChannelsCardViewer {
+    class CardVideoViewer extends Polymer.Element {
       static get is() { return 'card-video-viewer'; }
+      static get properties() {
+        return {
+          sharedState: Object,
+          author: Object,
+          user: Object
+        };
+      }
       connectedCallback() {
         super.connectedCallback();
-        const src = this.data.srcUrl;
-        if (!Modernizr.video || src.endsWith(".webm") || src.endsWith(".ogv") || src.endsWith(".mp4")) {
-          this.$.v.src = src;
-        } else if (Modernizr.video.webm) {
-          this.$.v.src = src + ".webm";
-        } else if (Modernizr.video.ogg) {
-          this.$.v.src = src + ".ogg";
-        } else if (Modernizr.video.h264) {
-          this.$.v.src = src + ".mp4";
-        } else {
-          this.$.v.src = src;
-        }
       }
     }
     window.customElements.define(CardVideoViewer.is, CardVideoViewer);
