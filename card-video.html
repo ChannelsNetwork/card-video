@@ -19,22 +19,68 @@
         height: 100px;
       }
 
+      #pickerPanel {
+        position: relative;
+      }
+
       #progress {
-        font-size: 20px;
-        text-align: center;
-        margin: 25px 0 15px;
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        padding: 5px;
+        background-color: #FFF59D;
+        font-size: 16px;
+      }
+
+      #videoPanel {
+        max-width: 800px;
+        width: 100%;
+        position: relative;
+      }
+
+      video {
+        width: 100%;
+        height: auto;
+      }
+
+      .offscreen {
+        position: fixed;
+        left: 2000px;
+        border: 1px solid black;
+      }
+
+      #uploadingThumbnail {
+        position: absolute;
+        top: 0;
+        left: 0;
+        padding: 5px;
+        background-color: #FFF59D;
+        font-size: 16px;
+      }
+
+      .seekExplain {
+        font-size: 14px;
+        font-style: italic;
       }
     </style>
     <div class="container">
+      <div id="pickerPanel">
+        <soso-file-picker id="filePicker" label="Drag an mp4 video file" accept=".mp4" on-files="_onFile"></soso-file-picker>
+        <div id="progress" style="display:none;">
+          <div>uploading...</div>
+        </div>
+      </div>
+      <div id="videoPanel" style="display:none;">
+        <video id="video" controls src="[[_videoUrl]]" on-seeked="_onSeeked"></video>
+        <div id="uploadingThumbnail" style="display:none;">uploading thumbnail...</div>
+        <div class="seekExplain">Seek to frame to use as card image</div>
+      </div>
       <div>
         <soso-text-input id="title" label="Title"></soso-text-input>
         <soso-text-input id="description" label="Description"></soso-text-input>
       </div>
-      <div>
-        <soso-file-picker id="filePicker" label="Drag an mp4 video file" accept=".mp4" on-files="_onFile"></soso-file-picker>
-      </div>
-      <div id="progress" style="display:none;">
-        <div>uploading...</div>
+      <div class="offscreen">
+        <canvas id="canvas"></canvas>
       </div>
     </div>
   </template>
@@ -44,7 +90,8 @@
       static get properties() {
         return {
           services: Object,
-          author: Object
+          author: Object,
+          _videoUrl: String
         };
       }
       connectedCallback() {
@@ -56,9 +103,31 @@
         return this._ready;
       }
 
+      prepare() {
+        return new Promise((resolve, reject) => {
+          this.$.canvas.width = this.$.video.offsetWidth;
+          this.$.canvas.height = this.$.video.offsetHeight;
+          this._thumbnailInProgress = true;
+          this.$.uploadingThumbnail.style.display = "";
+          setTimeout(() => {
+            var context = this.$.canvas.getContext('2d');
+            context.drawImage(this.$.video, 0, 0, this.$.video.offsetWidth, this.$.video.offsetHeight);
+            this.services.upload(this.$.canvas.toDataURL()).then((response) => {
+              this.$.uploadingThumbnail.style.display = "none";
+              this._thumbnailUrl = response.url;
+              this._thumbnailInProgress = false;
+              resolve();
+            }).catch((err) => {
+              this._thumbnailInProgress = false;
+              reject(err);
+            });
+          }, 25); // delay so don't do this too often
+        });
+      }
+
       get summary() {
         return {
-          imageURL: null,
+          imageURL: this._thumbnailUrl,
           title: this.$.title.value.trim(),
           text: this.$.description.value.trim()
         };
@@ -67,7 +136,10 @@
       get sharedState() {
         return {
           properties: {
-            videoUrl: this._videoUrl
+            videoUrl: this._videoUrl,
+            thumbnailUrl: this._thumbnailUrl,
+            title: this.$.title.value.trim(),
+            description: this.$.description.value.trim()
           },
           collections: {}
         }
@@ -79,6 +151,8 @@
         this.services.upload(event.detail.file).then((response) => {
           this._videoUrl = response.url;
           this.$.progress.style.display = "none";
+          this.$.pickerPanel.style.display = "none";
+          this.$.videoPanel.style.display = "";
           this._setReady(true);
         }).catch((err) => {
           this.$.filePicker.clear();
@@ -105,16 +179,30 @@
 <dom-module id="card-video-viewer">
   <template>
     <style>
-      video {
+      .container {
         max-width: 800px;
         width: 100%;
+      }
+
+      video {
+        width: 100%;
         height: auto;
-        vertical-align: middle;
+      }
+
+      .text {
+        margin: 40px 0 25px;
       }
     </style>
-    <div style="text-align:center;">
-      <video id="v" autoplay controls loop src="[[sharedState.properties.videoUrl]]"></video>
+    <div class="container">
+      <div style="text-align:center;">
+        <video id="v" controls src="[[sharedState.properties.videoUrl]]" poster="[[sharedState.properties.thumbnailUrl]]"></video>
+      </div>
+      <div class="text">
+        <h2>[[sharedState.properties.title]]</h2>
+        <p>[[sharedState.properties.description]]</p>
+      </div>
     </div>
+
   </template>
   <script>
     class CardVideoViewer extends Polymer.Element {
