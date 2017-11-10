@@ -66,8 +66,8 @@
 
       _onFile(event) {
         this._file = event.detail.file;
-        this.services.upload(event.detail.file).then((dataUrl) => {
-          this._videoUrl = dataUrl;
+        this.services.upload(event.detail.file).then((response) => {
+          this._videoUrl = response.url;
           this._setReady(true);
         }).catch((err) => {
           this.$.filePicker.clear();
