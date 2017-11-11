@@ -71,7 +71,7 @@
         </div>
       </div>
       <div id="videoPanel" style="display:none;">
-        <video id="video" controls src="[[_videoUrl]]" on-seeked="_onSeeked"></video>
+        <video id="video" controls src="[[_videoUrl]]" crossorigin="anonymous"></video>
         <div id="uploadingThumbnail" style="display:none;">uploading thumbnail...</div>
         <div class="seekExplain">Seek to frame to use as card image</div>
       </div>
@@ -149,8 +149,7 @@
         this._file = event.detail.file;
         this.$.progress.style.display = "";
         this.services.upload(event.detail.file).then((response) => {
-          this._videoUrl = response.url;
-          this.$.video.src = this._videoUrl;
+          this.set('_videoUrl', response.url);
           this.$.progress.style.display = "none";
           this.$.pickerPanel.style.display = "none";
           this.$.videoPanel.style.display = "";
