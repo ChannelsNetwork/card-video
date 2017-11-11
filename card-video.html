@@ -181,7 +181,8 @@
     <style>
       .container {
         max-width: 800px;
-        width: 100%;
+        margin: 0 auto;
+        padding: 10px;
       }
 
       video {
@@ -194,7 +195,7 @@
       }
     </style>
     <div class="container">
-      <div style="text-align:center;">
+      <div>
         <video id="v" controls autoplay src="[[sharedState.properties.videoUrl]]" poster="[[sharedState.properties.thumbnailUrl]]"></video>
       </div>
       <div class="text">
