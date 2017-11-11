@@ -112,7 +112,7 @@
           setTimeout(() => {
             var context = this.$.canvas.getContext('2d');
             context.drawImage(this.$.video, 0, 0, this.$.video.offsetWidth, this.$.video.offsetHeight);
-            this.services.upload(this.$.canvas.toDataURL('image/jpeg', 0.75)).then((response) => {
+            this.services.upload(this.$.canvas.toDataURL('image/jpeg', 0.75), "thumbnail").then((response) => {
               this.$.uploadingThumbnail.style.display = "none";
               this._thumbnailUrl = response.url;
               this._thumbnailInProgress = false;
