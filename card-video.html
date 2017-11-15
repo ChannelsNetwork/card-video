@@ -113,15 +113,18 @@
           setTimeout(() => {
             var context = this.$.canvas.getContext('2d');
             context.drawImage(this.$.video, 0, 0, this.$.video.offsetWidth, this.$.video.offsetHeight);
-            this.services.upload(this.$.canvas.toDataURL('image/jpeg', 0.85), "thumbnail").then((response) => {
-              this.$.uploadingThumbnail.style.display = "none";
-              this._thumbnailUrl = response.url;
-              this._thumbnailInProgress = false;
-              resolve();
-            }).catch((err) => {
-              this._thumbnailInProgress = false;
-              reject(err);
-            });
+
+            this.$.canvas.toBlob((blob) => {
+              this.services.upload(blob, "thumbnail").then((response) => {
+                this.$.uploadingThumbnail.style.display = "none";
+                this._thumbnailUrl = response.url;
+                this._thumbnailInProgress = false;
+                resolve();
+              }).catch((err) => {
+                this._thumbnailInProgress = false;
+                reject(err);
+              });
+            }, 'image/jpeg');
           }, 25); // delay so don't do this too often
         });
       }
