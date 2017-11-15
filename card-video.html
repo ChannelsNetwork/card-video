@@ -112,15 +112,21 @@
           this.$.uploadingThumbnail.style.display = "";
           setTimeout(() => {
             var context = this.$.canvas.getContext('2d');
+            console.log("Drawing canvas from video...");
             context.drawImage(this.$.video, 0, 0, this.$.video.offsetWidth, this.$.video.offsetHeight);
-
+            console.log("Image drawn to canvas");
+            console.log("Calling canvas.toBlob...");
             this.$.canvas.toBlob((blob) => {
+              console.log("blob created", blob);
+              console.log("Stating upload");
               this.services.upload(blob, "thumbnail").then((response) => {
                 this.$.uploadingThumbnail.style.display = "none";
                 this._thumbnailUrl = response.url;
                 this._thumbnailInProgress = false;
+                console.log("upload complete");
                 resolve();
               }).catch((err) => {
+                console.error(err);
                 this._thumbnailInProgress = false;
                 reject(err);
               });
