@@ -207,6 +207,19 @@
       .text {
         padding: 5px 15px;
       }
+
+      a,
+      a:visited,
+      a:hover {
+        color: #2E7D32;
+        outline: none;
+        letter-spacing: 0.05em;
+        text-decoration: none;
+      }
+
+      a:hover {
+        box-shadow: 0 1px 0px 0;
+      }
     </style>
     <div class="container">
       <div>
@@ -214,11 +227,13 @@
       </div>
       <div class="text">
         <h2>[[sharedState.properties.title]]</h2>
-        <p>[[sharedState.properties.description]]</p>
+        <p id="description"></p>
       </div>
     </div>
 
   </template>
+  <script type="text/javascript" src="urlize.js"></script>
+  <script type="text/javascript" src="urlize_tlds.js"></script>
   <script>
     class CardVideoViewer extends Polymer.Element {
       static get is() { return 'card-video-viewer'; }
@@ -231,6 +246,15 @@
       }
       connectedCallback() {
         super.connectedCallback();
+        const description = this.sharedState.properties.description;
+        if (description) {
+          this.$.description.innerHTML = urlize(description, {
+            autoescape: true,
+            target: "blank",
+            trim: "www",
+            top_level_domains: urlize.top_level_domains
+          });
+        }
       }
     }
     window.customElements.define(CardVideoViewer.is, CardVideoViewer);
