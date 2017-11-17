@@ -72,7 +72,7 @@
         </div>
       </div>
       <div id="videoPanel" style="display:none;">
-        <video id="video" controls src="[[_videoUrl]]" crossorigin="anonymous"></video>
+        <video id="video" controls src="[[_videoUrl]]" crossorigin="anonymous" on-seeked="_onSeeked"></video>
         <div id="uploadingThumbnail" style="display:none;">uploading thumbnail...</div>
         <div class="seekExplain">Seek to frame to use as card image</div>
       </div>
@@ -106,6 +106,14 @@
 
       prepare() {
         return new Promise((resolve, reject) => {
+          if (!this._videoUrl) {
+            resolve();
+            return;
+          }
+          if (this._thumbnailUrl) {
+            resolve();
+            return;
+          }
           this.$.canvas.width = this.$.video.offsetWidth;
           this.$.canvas.height = this.$.video.offsetHeight;
           this._thumbnailInProgress = true;
@@ -184,6 +192,10 @@
           this._ready = value;
           this.dispatchEvent(new CustomEvent('state-ready-change', { bubbles: true, composed: true, detail: { ready: this._ready } }));
         }
+      }
+
+      _onSeeked() {
+        this._thumbnailUrl = null;
       }
     }
     window.customElements.define(CardVideoComposer.is, CardVideoComposer);
