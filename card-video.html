@@ -1,6 +1,7 @@
 <link rel="import" href="../polymer/polymer-element.html">
 <link rel="import" href="../soso-text-input/soso-text-input.html">
 <link rel="import" href="../soso-file-picker/soso-file-picker.html">
+<link rel="import" href="./soso-textarea.html">
 
 <dom-module id="card-video-composer">
   <template>
@@ -63,6 +64,12 @@
         font-size: 14px;
         font-style: italic;
       }
+
+      soso-textarea {
+        width: 100%;
+        outline: 1px solid #ccc;
+        padding: 3px;
+      }
     </style>
     <div class="container">
       <div id="pickerPanel">
@@ -78,7 +85,7 @@
       </div>
       <div>
         <soso-text-input id="title" label="Title"></soso-text-input>
-        <soso-text-input id="description" label="Description"></soso-text-input>
+        <soso-textarea id="description" placeholder="Description" rows="5"></soso-textarea>
       </div>
       <div class="offscreen">
         <canvas id="canvas"></canvas>
@@ -147,7 +154,7 @@
         return {
           imageURL: this._thumbnailUrl,
           title: this.$.title.value.trim(),
-          text: this.$.description.value.trim()
+          text: this.$.description.value.trim().split('\n')[0]
         };
       }
 
@@ -260,12 +267,14 @@
         super.connectedCallback();
         const description = this.sharedState.properties.description;
         if (description) {
-          this.$.description.innerHTML = urlize(description, {
+          let html = urlize(description, {
             autoescape: true,
             target: "blank",
             trim: "www",
             top_level_domains: urlize.top_level_domains
           });
+          html = html.split('\n').join('<br>\n');
+          this.$.description.innerHTML = html;
         }
       }
     }
