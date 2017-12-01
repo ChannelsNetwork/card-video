@@ -116,6 +116,9 @@
           this._thumbnailUrl = props.thumbnailUrl;
           this.$.title.value = props.title || "";
           this.$.description.value = props.description || "";
+          this.$.progress.style.display = "none";
+          this.$.pickerPanel.style.display = "none";
+          this.$.videoPanel.style.display = "";
           this._setReady(true);
         }
       }
