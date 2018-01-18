@@ -111,14 +111,14 @@
         this._ready = false;
 
         if (this.initialState && this.initialState.shared && this.initialState.shared.files) {
-          let files = this.initialState.shared.files;
-          for (const fileInfo of this.initialState.shared.files) {
+          for (const fileId of Object.keys(this.initialState.shared.files)) {
+            const fileInfo = this.initialState.shared.files[fileId];
             if (fileInfo.key === 'thumbnail') {
-              this._thumbnailId = fileInfo.file.id;
-              this._thumbnailUrl = fileInfo.file.url;
+              this._thumbnailId = fileId;
+              this._thumbnailUrl = fileInfo.url;
             } else if (fileInfo.key === 'video') {
-              this._videoFileId = fileInfo.file.id;
-              this._videoUrl = fileInfo.file.url;
+              this._videoFileId = fileId;
+              this._videoUrl = fileInfo.url;
             }
           }
         }
@@ -205,13 +205,13 @@
             description: this.$.description.value.trim()
           },
           collections: {},
-          files: []
+          files: {}
         };
         if (this._thumbnailId) {
-          result.files.push({ fileId: this._thumbnailId, key: "thumbnail" });
+          result.files[this._thumbnailId] = { key: "thumbnail" };
         }
         if (this._videoFileId) {
-          result.files.push({ fileId: this._videoFileId, key: "video" });
+          result.files[this._videoFileId] = { key: "video" };
         }
         return result;
       }
