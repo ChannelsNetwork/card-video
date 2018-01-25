@@ -110,10 +110,28 @@
         super.connectedCallback();
         this._ready = false;
 
+        if (this.initialState && this.initialState.shared && this.initialState.shared.files) {
+          for (const fileId of Object.keys(this.initialState.shared.files)) {
+            const fileInfo = this.initialState.shared.files[fileId];
+            if (fileInfo.key === 'thumbnail') {
+              this._thumbnailId = fileId;
+              this._thumbnailUrl = fileInfo.url;
+            } else if (fileInfo.key === 'video') {
+              this._videoFileId = fileId;
+              this._videoUrl = fileInfo.url;
+            }
+          }
+        }
         if (this.initialState && this.initialState.shared && this.initialState.shared.properties) {
           let props = this.initialState.shared.properties;
-          this._videoUrl = props.videoUrl;
-          this._thumbnailUrl = props.thumbnailUrl;
+          if (!this._videoUrl) {
+            this._videoFileId = props.videoFileId;
+            this._videoUrl = props.videoUrl;
+          }
+          if (!this.thumbnailUrl) {
+            this._thumbnailId = props.thumbnailId;
+            this._thumbnailUrl = props.thumbnailUrl;
+          }
           this.$.title.value = props.title || "";
           this.$.description.value = props.description || "";
           this.$.progress.style.display = "none";
@@ -153,6 +171,7 @@
               this.services.upload(blob, "thumbnail").then((response) => {
                 this.$.uploadingThumbnail.style.display = "none";
                 this._thumbnailUrl = response.url;
+                this._thumbnailId = response.fileId;
                 this._thumbnailInProgress = false;
                 console.log("upload complete");
                 resolve();
@@ -169,21 +188,32 @@
       get summary() {
         return {
           imageURL: this._thumbnailUrl,
+          imageId: this._thumbnailId,
           title: this.$.title.value.trim(),
           text: this.$.description.value.trim().split('\n')[0]
         };
       }
 
       get sharedState() {
-        return {
+        const result = {
           properties: {
             videoUrl: this._videoUrl,
+            videoFileId: this._videoFileId,
             thumbnailUrl: this._thumbnailUrl,
+            thumbnailId: this._thumbnailId,
             title: this.$.title.value.trim(),
             description: this.$.description.value.trim()
           },
-          collections: {}
+          collections: {},
+          files: {}
+        };
+        if (this._thumbnailId) {
+          result.files[this._thumbnailId] = { key: "thumbnail" };
         }
+        if (this._videoFileId) {
+          result.files[this._videoFileId] = { key: "video" };
+        }
+        return result;
       }
 
       get searchText() {
@@ -195,6 +225,7 @@
         this.$.progress.style.display = "";
         this.services.upload(event.detail.file).then((response) => {
           this.set('_videoUrl', response.url);
+          this._videoFileId = response.fileId;
           this.$.progress.style.display = "none";
           this.$.pickerPanel.style.display = "none";
           this.$.videoPanel.style.display = "";
@@ -204,6 +235,7 @@
           this.$.progress.style.display = "none";
           this._file = null;
           this._videoUrl = null;
+          this._videoFileId = null;
           this._setReady(false);
           console.error(err);
           this._setError("Failed to load video file");
@@ -219,6 +251,7 @@
 
       _onSeeked() {
         this._thumbnailUrl = null;
+        this._thumbnailId = null;
       }
     }
     window.customElements.define(CardVideoComposer.is, CardVideoComposer);
