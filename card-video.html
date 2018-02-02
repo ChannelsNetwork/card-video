@@ -291,14 +291,13 @@
     </style>
     <div class="container">
       <div>
-        <video id="v" controls autoplay src="[[sharedState.properties.videoUrl]]" poster="[[sharedState.properties.thumbnailUrl]]"></video>
+        <video id="v" controls autoplay$="[[active]]" src="[[sharedState.properties.videoUrl]]" poster="[[sharedState.properties.thumbnailUrl]]"></video>
       </div>
       <div class="text">
         <h2>[[sharedState.properties.title]]</h2>
         <p id="description"></p>
       </div>
     </div>
-
   </template>
   <script type="text/javascript" src="urlize.js"></script>
   <script type="text/javascript" src="urlize_tlds.js"></script>
@@ -309,7 +308,11 @@
         return {
           sharedState: Object,
           author: Object,
-          user: Object
+          user: Object,
+          active: {
+            type: Boolean,
+            value: true
+          }
         };
       }
       connectedCallback() {
