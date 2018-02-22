@@ -291,7 +291,8 @@
     </style>
     <div class="container">
       <div>
-        <video id="v" controls autoplay$="[[active]]" src="[[sharedState.properties.videoUrl]]" poster="[[sharedState.properties.thumbnailUrl]]"></video>
+        <video id="v" controls loop autoplay$="[[active]]" src="[[sharedState.properties.videoUrl]]" poster="[[sharedState.properties.thumbnailUrl]]"
+          on-play="_onPlay" on-pause="_onPause"></video>
       </div>
       <div class="text">
         <h2>[[sharedState.properties.title]]</h2>
@@ -316,6 +317,12 @@
           }
         };
       }
+
+      constructor() {
+        super();
+        this._visibilityListener = this._visibilityChange.bind(this);
+      }
+
       connectedCallback() {
         super.connectedCallback();
         const description = this.sharedState.properties.description;
@@ -330,10 +337,37 @@
           this.$.description.innerHTML = html;
         }
       }
+
+      disconnectedCallback() {
+        window.removeEventListener('visibility-change', this._visibilityListener);
+      }
+
+      get handlesPaymentProgress() {
+        return true;
+      }
+
       _onActive() {
         if (this.active && this.$.v && this.$.v.play) {
           try { this.$.v.play(); } catch (err) { console.error(err); }
         }
+        window.addEventListener('visibility-change', this._visibilityListener);
+      }
+
+      _visibilityChange(event) {
+        let hidden = event.detail.hidden;
+        if (hidden) {
+          if (this.$.v && this.$.v.pause) {
+            this.$.v.pause();
+          }
+        }
+      }
+
+      _onPause() {
+        this.dispatchEvent(new CustomEvent('progress-stop'));
+      }
+
+      _onPlay() {
+        this.dispatchEvent(new CustomEvent('progress-start'));
       }
     }
     window.customElements.define(CardVideoViewer.is, CardVideoViewer);
