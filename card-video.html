@@ -2,6 +2,7 @@
 <link rel="import" href="../soso-text-input/soso-text-input.html">
 <link rel="import" href="../soso-file-picker/soso-file-picker.html">
 <link rel="import" href="./soso-textarea.html">
+<link rel="import" href="../utils-urlize/utils-urlize.html">
 
 <dom-module id="card-video-composer">
   <template>
@@ -300,8 +301,6 @@
       </div>
     </div>
   </template>
-  <script type="text/javascript" src="urlize.js"></script>
-  <script type="text/javascript" src="urlize_tlds.js"></script>
   <script>
     class CardVideoViewer extends Polymer.Element {
       static get is() { return 'card-video-viewer'; }
